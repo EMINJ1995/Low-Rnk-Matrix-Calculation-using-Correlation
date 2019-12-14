@@ -1,0 +1,74 @@
+function [A,GL,DN,numm,catm] = inputdata(inputmatrix1,name,list)
+[m,n]=size(inputmatrix1);
+cl=0;
+B=name;
+GL=0;
+DN=0;
+P=inputmatrix1;
+
+for i=1:21    
+    C=list(i,1);
+if(strcmp(B,C{1,1}))
+    class=list{i,4};
+    cat=list{i,5};
+    num=list{i,6};
+    DN=list(i,:);
+   
+    
+if(class>0)
+       cl=1;
+     Q=P{:,n};
+    if(isnumeric(Q))
+        num=num+1;
+        DN(1,6)=array2table(num);
+    else
+        cat=cat+1;
+        DN(1,5)=array2table(cat);
+    end
+end
+ numm=zeros(1,num);
+    P1=zeros(m,num);
+    catm=zeros(1,cat);
+    Q1=array(zeros(m,cat));        
+end
+end
+%{
+if(num>0)
+E=inputmatrix1(:,1:(n-cat));
+end
+if(cat>0)
+F=inputmatrix1(:,(n-cat-cl+1):n);
+end
+%}
+%----------------------------------------------
+if(num>0 && cat>0)
+    p=1;
+    q=1;
+for j=1:n
+    Q=P{:,j};
+    if(isnumeric(Q))
+        P1(:,p)=Q;
+        numm(1,p)=j;
+        p=p+1;
+    else
+    Q1(:,q)=Q;
+    catm(1,q)=j;
+    q=q+1;
+    end
+    
+end     
+%-----------------------------------------------    
+if(cat==0)
+A=table2array(P);
+elseif(num==0)
+   [F1,GL]=Categorical(P);  
+   A=F1;
+else
+    [F1,GL]=Categorical(Q1);
+    Data=zeros(m,n);
+    
+   Data= table2array(P1);
+    Data(:,(n-cat):n)=F1;
+    A=Data;
+end
+end

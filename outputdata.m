@@ -1,0 +1,86 @@
+function [A,B,C] = outputdata(I,O,GL,DN,numm,catm)
+A=0;
+B=0;
+C=0;
+cl=0;
+list=DN;
+I1=I;
+I=0;
+[m,n]=size(O);
+Main=zeros(m,n);
+limit=1000;
+mprev=1;
+if(m>limit)
+   m1=round(m/limit);
+   for m2=1:m1
+       m3=(m/m1)*m2;
+       I=I1(mprev:m3,:);
+%Imputation & NRMS functions
+[finalmatrix1,tocompare]=stageini(I);
+distance=correlation(finalmatrix1,tocompare);
+[kmatrix,sorteddismatrix]=knn(distance);
+imdata1=findingmissing(I,sorteddismatrix,kmatrix,distance,tocompare);
+Main(mprev:m3,:)=imdata1;
+mprev=m3+1;
+   end
+   imdata=Main;
+else
+    %Imputation & NRMS functions
+    I=I1;
+[finalmatrix1,tocompare]=stageini(I);
+distance=correlation(finalmatrix1,tocompare);
+[kmatrix,sorteddismatrix]=knn(distance);
+imdata=findingmissing(I,sorteddismatrix,kmatrix,distance,tocompare);
+end
+%-------------remove following one line-------------------
+class=list{1,4};
+cat=list{1,5};
+num=list{1,6};
+[m,n]=size(O);
+%O1=zeros(m,n);
+%---------------------------------
+
+    
+if(num>0 || cat>0)
+    for i=1:num
+O1(:,i)=O(:,numm(i));
+end
+    for i=1:cat
+   O1(:,i+num)=(O{:,catm(i)}); 
+end 
+end
+
+
+
+%-----------------------------
+%Extract numerical data and calculate NRMS/AE
+if(num>0)
+EInum=imdata(:,1:(n-cat));
+EOnum=(O1{:,1:(n-cat)});
+A=NRMS(EInum,EOnum);
+end
+if(cat>0)
+FIcat1=imdata(:,(n-cat+1):n);
+I1=I(:,(n-cat+1):n);
+if(num==0)
+FIcat1=normcat(I1,FIcat1);
+end
+FOcat=categorical(O1{:,(n-cat+1):n});
+FIcat=Categ(FIcat1,GL);
+B=AE(FIcat,FOcat);
+end
+
+if(cat==0)
+C=EInum;
+elseif(num==0)
+    C=FIcat;
+else
+    
+    
+    Data=zeros(m,n);    
+   Data=array2table(EInum);
+   for i=1:cat
+   Data(:,num+i)=table(FIcat(:,i));
+   end
+C=Data;
+end
